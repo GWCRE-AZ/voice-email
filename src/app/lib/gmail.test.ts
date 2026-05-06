@@ -175,7 +175,22 @@ describe("filter helpers", () => {
 });
 
 describe("voicemail footer", () => {
-  it("only enables the footer for the allowlisted Gmail account", () => {
+  let originalFooterEmail: string | undefined;
+  let originalSiteUrl: string | undefined;
+
+  beforeEach(() => {
+    originalFooterEmail = process.env.VOICEMAIL_FOOTER_EMAIL;
+    originalSiteUrl = process.env.VOICEMAIL_SITE_URL;
+    process.env.VOICEMAIL_FOOTER_EMAIL = "tomblomfield@gmail.com,tb@ycombinator.com";
+    delete process.env.VOICEMAIL_SITE_URL;
+  });
+
+  afterEach(() => {
+    process.env.VOICEMAIL_FOOTER_EMAIL = originalFooterEmail;
+    process.env.VOICEMAIL_SITE_URL = originalSiteUrl;
+  });
+
+  it("only enables the footer for the configured email addresses", () => {
     expect(shouldAddVoicemailFooter("tomblomfield@gmail.com")).toBe(true);
     expect(shouldAddVoicemailFooter("TB@YCOMBINATOR.COM")).toBe(true);
     expect(shouldAddVoicemailFooter("other@example.com")).toBe(false);
@@ -203,6 +218,12 @@ describe("voicemail footer", () => {
     expect(
       appendVoicemailFooter("No footer here", "someone@example.com")
     ).toBe("No footer here");
+  });
+
+  it("disables the footer for everyone when env var is empty", () => {
+    process.env.VOICEMAIL_FOOTER_EMAIL = "";
+    expect(shouldAddVoicemailFooter("tomblomfield@gmail.com")).toBe(false);
+    expect(shouldAddVoicemailFooter("anyone@example.com")).toBe(false);
   });
 });
 

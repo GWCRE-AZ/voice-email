@@ -80,10 +80,12 @@ export class GmailScopeError extends Error {
   }
 }
 
-const FOOTER_ELIGIBLE_SENDERS = new Set([
-  "tomblomfield@gmail.com",
-  "tb@ycombinator.com",
-]);
+function getFooterEligibleSenders(): Set<string> {
+  const raw = process.env.VOICEMAIL_FOOTER_EMAIL || "";
+  return new Set(
+    raw.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean)
+  );
+}
 
 function getEncryptionKey(): string {
   const key = process.env.SESSION_SECRET;
@@ -362,7 +364,7 @@ function normalizeUrl(value: string): string {
 }
 
 export function shouldAddVoicemailFooter(userEmail: string): boolean {
-  return FOOTER_ELIGIBLE_SENDERS.has(normalizeEmailAddress(userEmail));
+  return getFooterEligibleSenders().has(normalizeEmailAddress(userEmail));
 }
 
 // TODO: Update this to the real prod domain when we change it
